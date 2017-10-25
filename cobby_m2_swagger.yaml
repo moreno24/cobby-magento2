@@ -1,0 +1,328 @@
+swagger: '2.0'
+info:
+  description: ''
+  version: 1.0.0
+  title: cobby magento1
+host: '{{shopurl}}'
+basePath: "/index.php/rest/"
+schemes:
+- "http"
+paths:
+  /V1/integration/admin/token:
+    post:
+      summary: Generate session token
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: '{"username":"{{apiUser}}", "password":"{{apiPassword}}"}'
+  /cobby/store/websites:
+    get:
+      summary: store/websites
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+  /cobby/store/storeGroups:
+    get:
+      summary: store/storeGroups
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+  /cobby/store/storeViews:
+    get:
+      summary: store/storeViews
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+  /cobby/categories?storeId=0:
+    get:
+      summary: categories
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+  /cobby/configs:
+    get:
+      summary: configs
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+  /cobby/customer/groups:
+    get:
+      summary: customer/groups
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+  /cobby/debug:
+    get:
+      summary: debug
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+  /cobby/product/attribute/sets:
+    get:
+      summary: product/attribute/sets
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+  /cobby/product/ids?pageNum=0&pageSize=1024:
+    get:
+      summary: product/ids
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+  /cobby/product/attributes?attributeSetId=4:
+    get:
+      summary: product/attributes
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+  /cobby/product/attribute/options?attributeId=93:
+    get:
+      summary: product/attribute/options
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+  /cobby/queue/max:
+    get:
+      summary: queue/max
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+  /cobby/queue?minQueueId=0&pageSize=1024:
+    get:
+      summary: queue
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+  /cobby/indexer:
+    get:    
+      summary: indexer
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+  /cobby/queue:
+    delete:
+      summary: queue
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+  /cobby/export/products:
+    post:
+      summary: export/products
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: '{"jsonData":"{\"2059\":\"\"}"}'
+  /cobby/import/products/links:
+    post:
+      summary: import/products/links
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: '{"jsonData": "{\"1\" : {\"upsell\" : [3],\"crosssell\" : [19, 83, 28, 25, 20, 145],\"related\" : [134, 132, 133, 145]}}"}'
+  /cobby/import/products/categories:
+    post:
+      summary: import/products/categories
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: '{"jsonData": "[{\"product_id\": 1, \"categories\": [3,4,5] },{\"product_id\": 2, \"categories\": [1,4] }]"}'
+  /cobby/import/products/tierPrices:
+    post:
+      summary: import/products/tierPrices
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: '{"jsonData": "{\"1\" : [3,4]}"}'
+  /cobby/beforeImport:
+    post:
+      summary: beforeImport
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: '{"jsonData": "[\"product\",{\"sku\":\"test\", \"product_id\":1, \"product_type\":\"simple\"}]"}'
+  /cobby/import/products/dispatch:
+    post:
+      summary: import/products/dispatch
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: '{"data": {"event_type": "start","entities":[{"sku": "test","product_id": "1","product_type": "simple"},{"sku": "test2","product_id": "2","product_type": "simple"}]}}'
+  /cobby/import/products/start:
+    post:
+      summary: import/products/start
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: ''
+  /cobby/import/products/finish:
+    post:
+      summary: import/products/finish
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: '{"data":[{"sku": "test","product_id": "1"},{"sku": "test2","product_id": "2"}]}'
+  /cobby/afterImport:
+    post:
+      summary: afterImport
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: '{"jsonData": "[\"product\",{\"sku\":\"test\", \"product_id\":1, \"product_type\":\"simple\"}]"}'
+  /cobby/import/products/images:
+    post:
+      summary: import/products/images
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: ''
+  /cobby/import/products/grouped:
+    post:
+      summary: import/products/grouped
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: '{"jsonData":"[{\"product_id\":11,\"_associated_ids\":{\"2\":{\"qty\":\"0\",\"pos\":1},\"9\":{\"qty\":\"0\",\"pos\":2}}}]"}'
+  /cobby/import/products/configurable:
+    post:
+      summary: import/products/configurable
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: '{"jsonData":"{\"14\":{\"product_id\":14,\"attr_set_code\":\"Default\",\"attributes\":[{\"attribute_id\":90,\"code\":\"color\",\"labels\":[{\"store_id\":0,\"use_default\":false,\"value\":\"Color\"}],\"options\":[]}],\"associated_ids\":[13]}}"}'
+  /cobby/import/products/urls:
+    post:
+      summary: import/products/urls
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: '{"jsonData":"{\"2049\":[{\"store_id\":0,\"name\":\"test\",\"url_key\":\"testab\"}]}"}'
+  /cobby/import/products/stocks:
+    post:
+      summary: import/products/stocks
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: '{"jsonData" : "{\"3862\":{\"product_id\":\"3862\",\"product_type\":\"simple\",\"min_qty\":\"4\"}}"}'
+  /cobby/product/attribute/options:
+    post:
+      summary: product/attribute/options
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: '{"jsonData":"[{\"attribute_id\":93,\"options\":[{\"option_id\":\"option1\",\"option_key\":\"key93Black3\",\"labels\":[{\"store_id\":0,\"value\":\"Black3\"}]}]}]"}'
+  /cobby/import/products/bundle:
+    post:
+      summary: import/products/bundle
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: '{"jsonData":"{\"2049\":[{\"product_id\":2049,\"required\": \"1\",\"position\": \"1\",\"type\": \"select\",\"titles\": [{\"store_id\": \"0\",\"title\":\"option\"}],\"selections\": [{\"assigned_product_id\": \"3\",\"position\": \"1\",\"is_default\": \"1\",\"qty\": \"1.0000\",\"can_change_qty\": \"0\",\"prices\": [{\"website_id\": 0,\"price_type\": \"1\",\"price_value\": \"0.0000\"}]},{\"assigned_product_id\": \"4\",\"position\": \"2\",\"is_default\": \"0\",\"qty\": \"0.0000\",\"can_change_qty\": \"0\",\"prices\": [{\"website_id\": 0,\"price_type\": \"0\",\"price_value\": \"0.0000\"}]}]}]}"}'
+  /cobby/indexer/reindex:
+    post:
+      summary: indexer/reindex
+      parameters:
+        - name: Content-Type
+          in: header
+        - name: Authorization
+          in: header
+        - in: body
+          name: body
+          description: '{"jsonData":"{\"indexer\":\"catalog_product_flat\",\"product_ids\":[1641]}"}'
