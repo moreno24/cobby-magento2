@@ -66,5 +66,5 @@ script:
   - cd $HOME/ce/vendor
   - ./bin/phpcs --standard=./magento-ecg/coding-standard/EcgM2/ --warning-severity=6 ./mash2/cobby-magento2/
   # run unit test
-  - cd mash2/cobby-magento2/ && php ../../bin/phpunit
- 
+  # cd mash2/cobby-magento2/ && php ../../bin/phpunit
+  - bin/phpunit mash2/cobby-magento2/Tests
