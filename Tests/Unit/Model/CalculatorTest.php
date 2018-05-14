@@ -10,6 +10,7 @@ namespace Mash2\Cobby\Tests;
 
 use Mash2\Cobby\Model\Calculator;
 use PHPUnit\Framework\TestCase;
+use PHPUnit_Framework_TestCase;
 
 /**
  * @covers Mash2\Cobby\Model\Calculator
