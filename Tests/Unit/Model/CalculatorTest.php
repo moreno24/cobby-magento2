@@ -14,7 +14,7 @@ use Mash2\Cobby\Model\Calculator;
 /**
  * @covers Mash2\Cobby\Model\Calculator
  */
-class CalculatorTest extends \PHPUnit_Framework_TestCase
+class CalculatorTest extends \PHPUnit\Framework\TestCase
 {
 
     /**
