@@ -10,28 +10,23 @@ namespace Mash2\Cobby\Tests;
 
 use Mash2\Cobby\Model\ConfigManagement;
 use PHPUnit\Framework\TestCase;
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Store\Model\StoreManagerInterface;
-use Magento\Backend\Model\UrlInterface;
-use Magento\Framework\App\ProductMetadataInterface;
 
 class ConfigManagementTest extends TestCase
 {
-
-
-    public function testGetList(): void
+    public function testGetList()
     {
-        $config = new ConfigManagement(
-            ScopeConfigInterface,
-            StoreManagerInterface,
-            UrlInterface,
-            ProductMetadataInterface
-            );
+        $config = $this->getMockBuilder(ConfigManagement::class)
+            ->disableOriginalConstructor()
+            ->getMock();
 
         $list = $config->getList();
-        $this->assertEquals(
-            'id',
-            $list['id']
-        );
+
+        foreach ($list as $store) {
+            $this->assertEquals(
+                0,
+                $store['store_id']
+            );
+        }
+
     }
 }
