@@ -6,7 +6,7 @@
  * Time: 11:44
  */
 
-namespace Mash2\Cobby\Tests;
+namespace Mash2\Cobby\Test;
 
 use Mash2\Cobby\Model\Calculator;
 //use PHPUnit\Framework\TestCase;
