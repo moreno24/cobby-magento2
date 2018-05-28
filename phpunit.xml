@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/7.1.5/phpunit.xsd"
-         bootstrap="../../autoload.php"
+         bootstrap="/var/www/html//vendor/autoload.php"
          backupGlobals="false"
          beStrictAboutOutputDuringTests="true"
          beStrictAboutTestsThatDoNotTestAnything="true"
          beStrictAboutTodoAnnotatedTests="true"
-         verbose="true">
+         verbose="true"
+         colors="true">
     <testsuite>
-        <directory suffix="Test.php">Tests</directory>
+        <directory suffix="Test.php">Test</directory>
     </testsuite>
 
     <filter>
