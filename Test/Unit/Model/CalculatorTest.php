@@ -6,15 +6,15 @@
  * Time: 11:44
  */
 
-namespace Mash2\Cobby\Test;
+namespace Mash2\Cobby\Test\Unit\Model;
 
 use Mash2\Cobby\Model\Calculator;
-//use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @covers Mash2\Cobby\Model\Calculator
  */
-class CalculatorTest extends \PHPUnit\Framework\TestCase
+class CalculatorTest extends TestCase
 {
 
     /**
