@@ -8,8 +8,6 @@
 
 namespace Mash2\Cobby\Test\Unit\Model;
 
-use Klarna\Core\Exception;
-use Magento\Framework\App\ProductMetadata;
 use Mash2\Cobby\Model\ConfigManagement;
 use PHPUnit\Framework\Error\Error;
 use PHPUnit\Framework\TestCase;
@@ -17,6 +15,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Backend\Model\UrlInterface;
 use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Store\Model\Store\Interceptor;
 
 class ConfigManagementTest extends TestCase
 {
@@ -26,63 +25,16 @@ class ConfigManagementTest extends TestCase
     private $url;
     private $productMetadata;
     protected $_testHelper;
+    private $storeInterceptor;
 
 
     protected function setUp()
     {
-        $helper = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
-
-        $this->url = $helper->getObject(UrlInterface::class);
-        $this->scopeConfig = $this->createMock(ScopeConfigInterface::class);
-
-        $this->storeManager = $this->createMock(StoreManagerInterface::class);
-
-       // $this->url = $this->createMock(UrlInterface::class);
-
-        $this->productMetadata = $this->createMock(ProductMetadataInterface::class);
-
-
-
-//        $this->scopeConfig = $this->getMockForAbstractClass(
-//            'Magento\Framework\App\Config\ScopeConfigInterface',
-//            [],
-//            '',
-//            false,
-//            true,
-//            true,
-//            ['getValue']
-//        );
-//
-//        $this->storeManager = $this->getMockForAbstractClass(
-//            'Magento\Store\Model\StoreManagerInterface',
-//            [],
-//            '',
-//            false,
-//            true,
-//            true,
-//            ['getStores']
-//        );
-//
-//        $this->url = $this->getMockForAbstractClass(
-//            'Magento\Backend\Model\UrlInterface',
-//            [],
-//            '',
-//            false,
-//            true,
-//            true,
-//            ['turnOffSecretKey', 'getUrl']
-//        );
-//
-//        $this->productMetadata = $this->getMockForAbstractClass(
-//            'Magento\Framework\App\ProductMetadataInterface',
-//            [],
-//            '',
-//            false,
-//            true,
-//            true,
-//            ['getEdition', 'getVersion']
-//        );
-//
+        $this->scopeConfig = $this->getMockBuilder(ScopeConfigInterface::class)->getMockForAbstractClass();
+        $this->storeManager = $this->getMockBuilder(StoreManagerInterface::class)->getMockForAbstractClass();
+        $this->url = $this->getMockBuilder(UrlInterface::class)->getMockForAbstractClass();
+        $this->productMetadata = $this->getMockBuilder(ProductMetadataInterface::class)->getMockForAbstractClass();
+        $this->storeInterceptor = $this->getMockBuilder(Interceptor::class)->setMethods(['getId', 'getBaseUrl'])->getMock();
 
         $this->config = new ConfigManagement(
             $this->scopeConfig,
@@ -95,44 +47,40 @@ class ConfigManagementTest extends TestCase
     }
 
 
-    public function testFailGetList()
+    public function testGetList()
     {
+        $this->productMetadata->expects($this->once())->method('getEdition')->will($this->returnValue(false));
+        $this->productMetadata->expects($this->once())->method('getVersion')->will($this->returnValue(123));
 
-        /*
-         * http://magento.local:8080/index.php/admin/admin/ getUrl
-         *
-         *
-         *
-         *
-         */
+        $this->url->adminhtml="www.someUrl.com'";
+        $this->url->expects($this->once())->method('turnOffSecretKey')->will($this->returnValue($this->url));
+        $this->url->expects($this->once())->method('getUrl')->will($this->returnValue('www.someUrl.com'));
 
-        $realBackendUrl = new UrlInterface();
+        $this->storeManager->stores = array($this->storeInterceptor);
+        $this->storeManager->expects($this->any())->method('getStores')->will($this->returnValue(array($this->storeInterceptor)));
 
-        $this->scopeConfig->expects($this->once())->method('getValue')->willReturn([]);
-        $this->storeManager->expects($this->once())->method('getStores')->willReturn([0, 1]);
-        $this->url->expects($this->once())->method('getUrl')->willReturn($realBackendUrl->turnOffSecretKey()->getUrl('adminhtml'));
-        $this->productMetadata->expects($this->once())->method('getEdition')->willReturn(false);
-        $this->productMetadata->expects($this->once())->method('getVersion')->willReturn('2.2.3');
+        $this->storeInterceptor->expects($this->any())->method('getBaseUrl')->will($this->returnValue('baseUrl'));
+        $this->storeInterceptor->expects($this->any())->method('getId')->will($this->returnValue(0));
 
-        $storeConfigs = array(
-            'store_id' => '',
-            'web/unsecure/base_url' => '',
-            'cobby/settings/admin_url' => '',
+        $this->scopeConfig->expects($this->any())->method('getValue')->will($this->returnValue('someScope'));
+
+
+        $storeConfigs[] = array(
+            'store_id' => 0,
+            'web/unsecure/base_url' => 'baseUrl',
+            'cobby/settings/admin_url' => 'www.someUrl.com',
             'mage/core/enterprise' => false,
-            'mage/core/magento_version' => null
+            'mage/core/magento_version' => 123,
+            'cobby/settings/overwrite_images' => 'someScope',
+            'cobby/settings/cobby_version' => 'someScope',
+            'cobby/settings/clear_cache' => 'someScope',
+            'web/unsecure/base_media_url' => 'baseUrl',
+            'cataloginventory/item_options/manage_stock' => 'someScope',
+            'cataloginventory/item_options/backorders' => 'someScope',
+            'cataloginventory/item_options/min_qty' => 'someScope',
+            'cobby/stock/manage' => 'someScope'
         );
 
-        //$this->expectException(\Error::class);
-        //$this->assertEquals($storeConfigs, $this->config->getList());
-
-        $list = $this->config->getList();
-
-        foreach ($list as $store) {
-            $this->assertEquals(
-                $storeConfigs,
-                $store['store_id']
-            );
-        }
-
+        $this->assertEquals($storeConfigs, $this->config->getList());
     }
 }
