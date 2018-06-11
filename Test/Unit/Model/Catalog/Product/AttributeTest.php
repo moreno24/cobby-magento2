@@ -97,28 +97,6 @@ class AttributeTest extends TestCase
 
     }
 
-    public function testExportExceptionNoSetId()
-    {
-        $this->collection->expects($this->once())->method('setAttributeSetFilter');
-        $this->collection->expects($this->once())->method('load')->will($this->returnValue(
-            ['items' => [
-                'blub' => 'blab',
-                'blab' => 'blub'
-            ]]
-        ));
-
-        $this->product->expects($this->once())->method('getAttribute')->will($this->returnValue(["attribute" => "attribute"]));
-
-
-        $this->managerInterface->expects($this->once())->method('dispatch');
-
-        $this->attribute->export(1,1);
-
-        $this->expectException(Exception::class);
-        //$this->assertEquals([], $list);
-
-    }
-
     public function testExportExceptionNoAttrId()
     {
         $this->product->expects($this->once())->method('getAttribute')->will($this->returnValue(false));
