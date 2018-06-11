@@ -22,13 +22,14 @@ class AttributeTest extends TestCase
     protected $product;
     protected $managerInterface;
     protected $attribute;
+    private $attributeMock;
 
     protected function setUp()
     {
         $this->collection = $this->getMockBuilder(
             Collection::class)
             ->disableOriginalConstructor()
-            ->setMethods(['load', 'setAttributeSetFilter'])
+            ->setMethods(['setAttributeSetFilter', 'load'])
             ->getMock()
         ;
 
@@ -41,21 +42,73 @@ class AttributeTest extends TestCase
 
         $this->managerInterface = $this->getMockBuilder(ManagerInterface::class)->getMockForAbstractClass();
 
+        $this->attributeMock = $this->getMockBuilder(
+            Attribute::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getFrontendLabel', 'getStoreLabels', 'getData', 'getScope', 'getApplyTo', 'getItems'])
+            ->getMock()
+        ;
+
         $this->attribute = new Attribute(
             $this->collection,
             $this->product,
             $this->managerInterface
         );
     }
+
+    public function testExportAttribute()
+    {
+        $this->product->expects($this->once())->method('getAttribute')->will($this->returnValue($this->attributeMock));
+
+        $this->attributeMock->expects($this->once())->method('getFrontendLabel')->will($this->returnValue('blub'));
+        $this->attributeMock->expects($this->once())->method('getStoreLabels')->will($this->returnValue([]));
+        $this->attributeMock->expects($this->once())->method('getData')->will($this->returnValue([]));
+        $this->attributeMock->expects($this->once())->method('getScope')->will($this->returnValue('scope'));
+        $this->attributeMock->expects($this->once())->method('getApplyTo')->will($this->returnValue('nothing'));
+
+        $stores[] = array('store_id' => 0, 'label' => 'blub');
+        $expected[] = array(
+            'scope' => 'scope',
+            'apply_to' => 'nothing',
+            'store_labels' => $stores
+        );
+
+        $this->assertEquals($expected, $this->attribute->export(null, 1));
+    }
+
+    public function testExportAttributeSet()
+    {
+        $attribute = new AttributeHelper();
+        $this->collection->expects($this->once())->method('setAttributeSetFilter')->will($this->returnValue($this->collection));
+        $this->collection->expects($this->any())->method('load')->will($this->returnValue($attribute->getObjects($this->attributeMock)));
+
+        $this->attributeMock->expects($this->once())->method('getItems')->will($this->returnValue($this->attributeMock));
+
+
+        $this->attributeMock->expects($this->once())->method('getFrontendLabel')->will($this->returnValue('blub'));
+        $this->attributeMock->expects($this->once())->method('getStoreLabels')->will($this->returnValue([]));
+        $this->attributeMock->expects($this->once())->method('getData')->will($this->returnValue([]));
+        $this->attributeMock->expects($this->once())->method('getScope')->will($this->returnValue('scope'));
+        $this->attributeMock->expects($this->once())->method('getApplyTo')->will($this->returnValue('nothing'));
+
+        $this->managerInterface->expects($this->once())->method('dispatch');
+
+        $list = $this->attribute->export($attributeSetId= 1);
+
+    }
+
     public function testExportExceptionNoSetId()
     {
         $this->collection->expects($this->once())->method('setAttributeSetFilter');
         $this->collection->expects($this->once())->method('load')->will($this->returnValue(
-            ['items' => ['blub' => 'blab',
-                'blab' => 'blub']]
+            ['items' => [
+                'blub' => 'blab',
+                'blab' => 'blub'
+            ]]
         ));
 
         $this->product->expects($this->once())->method('getAttribute')->will($this->returnValue(["attribute" => "attribute"]));
+
 
         $this->managerInterface->expects($this->once())->method('dispatch');
 
