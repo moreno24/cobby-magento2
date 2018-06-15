@@ -69,5 +69,5 @@ script:
   # cd mash2/cobby-magento2/ && php ../../bin/phpunit
   # ../bin/magento -V | sed 's/.* //;q' | awk -F. '{ if ($1 > 2 || ($1 == 2 && $2 >= 2)) && bin/phpunit mash2/cobby-magento2/Test
   # bin/phpunit mash2/cobby-magento2/Test
-  ver=`echo $magento | sed 's/\.//g'`
-  if [ $ver -ge 220 ] ; then bin/phpunit mash2/cobby-magento2/Test ; fi
+  - ver=`echo $magento | sed 's/\.//g'`
+  - if [ $ver -ge 220 ] ; then bin/phpunit mash2/cobby-magento2/Test ; fi
