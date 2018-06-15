@@ -78,22 +78,18 @@ class AttributeTest extends TestCase
 
     public function testExportAttributeSet()
     {
-        $attribute = new AttributeHelper();
-        $this->collection->expects($this->once())->method('setAttributeSetFilter')->will($this->returnValue($this->collection));
-        $this->collection->expects($this->any())->method('load')->will($this->returnValue($attribute->getObjects($this->attributeMock)));
+        $attributeSetId = 1;
+        $collection = new \stdClass();
 
-        $this->attributeMock->expects($this->once())->method('getItems')->will($this->returnValue($this->attributeMock));
+        $this->collection->expects($this->once())->method('setAttributeSetFilter')->willReturn($this->collection);
+        $this->collection->expects($this->once())->method('load')->will($this->returnValue($collection));
 
+        $collection = array($this->attributeMock);
 
-        $this->attributeMock->expects($this->once())->method('getFrontendLabel')->will($this->returnValue('blub'));
-        $this->attributeMock->expects($this->once())->method('getStoreLabels')->will($this->returnValue([]));
-        $this->attributeMock->expects($this->once())->method('getData')->will($this->returnValue([]));
-        $this->attributeMock->expects($this->once())->method('getScope')->will($this->returnValue('scope'));
-        $this->attributeMock->expects($this->once())->method('getApplyTo')->will($this->returnValue('nothing'));
+        $this->attributeMock->expects($this->once())->method('getItems')->willReturn($collection);
+        $this->attributeMock->expects($this->any())->method('getFrontendLabel')->will($this->returnValue('blub'));
 
-        $this->managerInterface->expects($this->once())->method('dispatch');
-
-        $list = $this->attribute->export($attributeSetId= 1);
+        $this->assertEquals([], $this->attribute->export($attributeSetId));
 
     }
 
