@@ -104,6 +104,7 @@ class AttributeTest extends TestCase
         try {
             $this->attribute->export(1, 1);
         } catch (\Throwable $e) {
+            return;
         }
 
     }
