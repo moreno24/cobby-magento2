@@ -3,4 +3,7 @@
     <event name="sales_order_place_after">
         <observer name="order_placed" instance="Mash2\Cobby\Observer\OrderPlaced"/>
     </event>
+    <event name="cobby_catalog_product_export_after">
+        <observer name="product_export" instance="Mash2\Cobby\Observer\ExportProduct"/>
+    </event>
 </config>
