@@ -96,6 +96,8 @@ class StockManagement extends AbstractManagement implements \Mash2\Cobby\Api\Imp
         $entityTable = $this->resourceModel->getTableName('cataloginventory_stock_item');
         $stockItems = array();
 
+        $multiStoreItems = array();
+
         foreach ($rows as $row) {
             $productId = $row['product_id'];
             unset($row['product_id']);
@@ -103,6 +105,12 @@ class StockManagement extends AbstractManagement implements \Mash2\Cobby\Api\Imp
             if (!in_array($productId, $existingProductIds)) {
                 continue;
             }
+
+            if (!empty($row['stocks'])) {
+                $multiStoreItems = $row['stocks'];
+            }
+
+            unset($row['stocks']);
 
             $websiteId = $this->stockConfiguration->getDefaultScopeId();
             $stockData = array(
@@ -151,6 +159,11 @@ class StockManagement extends AbstractManagement implements \Mash2\Cobby\Api\Imp
         if (!empty($stockItems)) {
             $this->connection->insertOnDuplicate($entityTable, array_values($stockItems));
             $this->touchProducts($existingProductIds);
+        }
+
+        if (!empty($multiStoreItems)) {
+            $inventoryTable = $this->resourceModel->getTableName('inventory_source_item');
+            $this->connection->insertOnDuplicate($inventoryTable, $multiStoreItems);
         }
 
         $this->eventManager->dispatch('cobby_import_product_stock_import_after', array( 'products' => $productIds ));
