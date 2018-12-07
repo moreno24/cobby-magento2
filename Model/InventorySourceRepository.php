@@ -8,7 +8,7 @@ class InventorySourceRepository implements \Mash2\Cobby\Api\InventorySourceRepos
     private $sources;
 
     public function __construct(
-        \Magento\InventoryImportExport\Model\Export\Sources $sources
+        \Magento\Inventory\Model\SourceRepository $sources
     ){
         $this->sources = $sources;
     }
@@ -17,8 +17,21 @@ class InventorySourceRepository implements \Mash2\Cobby\Api\InventorySourceRepos
     public function export()
     {
         $result = array();
+        $reponseModel = [
+            'source_code' => '',
+            'enabled' => $data['enabled'],
+            'name' => $data['name']
+        ];
 
-        $sources = $this->sources->export();
+        $sources = $this->sources->getList()->getItems();
+
+        foreach ($sources as $source => $data) {
+            $result[$source] = [
+                                'source_code' => $data['source_code'],
+                                'enabled' => $data['enabled'],
+                                'name' => $data['name']
+                ];
+        }
 
 
         return $result;
