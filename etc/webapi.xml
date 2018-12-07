@@ -158,7 +158,7 @@
         </resources>
     </route>
 
-    <route url="/V1/cobby/export/sources" method="GET">
+    <route url="/V1/cobby/export/inventory/sources" method="GET">
         <service class="Mash2\Cobby\Api\InventorySourceRepositoryInterface" method="export" />
         <resources>
             <resource ref="Mash2_Cobby::cobby" />
