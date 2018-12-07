@@ -17,22 +17,17 @@ class InventorySourceRepository implements \Mash2\Cobby\Api\InventorySourceRepos
     public function export()
     {
         $result = array();
-        $reponseModel = [
-            'source_code' => '',
-            'enabled' => $data['enabled'],
-            'name' => $data['name']
-        ];
+
 
         $sources = $this->sources->getList()->getItems();
 
-        foreach ($sources as $source => $data) {
-            $result[$source] = [
-                                'source_code' => $data['source_code'],
-                                'enabled' => $data['enabled'],
-                                'name' => $data['name']
-                ];
+        foreach ($sources as $data) {
+            $result[] = array(
+                'source_code' => $data['source_code'],
+                'enabled' => $data['enabled'],
+                'name' => $data['name']
+            );
         }
-
 
         return $result;
     }
