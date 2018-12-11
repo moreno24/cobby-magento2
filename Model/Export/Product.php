@@ -37,6 +37,19 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
     const COL_CUSTOM_OPTIONS = '_custom_options';
     const COL_BUNDLE_OPTIONS = '_bundle_options';
 
+
+    private $_parameters = array(
+        'export_filter' => [
+            'source_code' => '',
+            'sku' => '',
+            'status' => '',
+            'quantity' => [
+                '0' => '',
+                '1' => ''
+            ]
+        ]
+    );
+
     /**
      * Attribute code to its values. Only attributes with options and only default store values used.
      *
@@ -132,8 +145,6 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
      */
     private $eventManager;
 
-    private $getSalableQuantityDataBySku;
-
     private $attributeCollectionProvider;
 
     private $sourceItemCollectionFactory;
@@ -163,7 +174,6 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
         \Magento\Catalog\Model\ResourceModel\Product\Option\CollectionFactory $optionColFactory,
         \Mash2\Cobby\Model\ResourceModel\Product\CollectionFactory $cobbyProduct,
         \Magento\Framework\Event\ManagerInterface $eventManager,
-        \Magento\InventorySalesAdminUi\Model\GetSalableQuantityDataBySku $getSalableQuantityDataBySku,
         \Magento\InventoryImportExport\Model\Export\AttributeCollectionProvider $attributeCollectionProvider,
         \Magento\InventoryImportExport\Model\Export\SourceItemCollectionFactoryInterface $sourceItemCollectionFactory
     )
@@ -181,7 +191,6 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
         $this->jsonHelper = $jsonHelper;
         $this->cobbyProduct = $cobbyProduct;
         $this->eventManager = $eventManager;
-        $this->getSalableQuantityDataBySku = $getSalableQuantityDataBySku;
         $this->attributeCollectionProvider = $attributeCollectionProvider;
         $this->sourceItemCollectionFactory = $sourceItemCollectionFactory;
 
@@ -442,32 +451,18 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
 
     protected function prepareMultiStocks(array $skus)
     {
-       $result = array();
-       $parameters = array(
-           'export_filter' => [
-               'source_code' => '',
-               'sku' => '',
-               'status' => '',
-               'quantity' => [
-                   '0' => '',
-                   '1' => ''
-               ]
-           ]
-       );
+       $result = $this->_initResult(array_keys($skus));
 
        $collection = $this->sourceItemCollectionFactory->create(
            $this->attributeCollectionProvider->get(),
-           $parameters
+           $this->_parameters
        );
 
        $collection->addFieldToFilter('sku', $skus);
 
-       foreach ($skus as $sku) {
-           //$result=$this->getSalableQuantityDataBySku->execute($sku);
-       }
-
        foreach ($collection->getData() as $data) {
-           $result[] = $data;
+           //if ($data['sku'] == )
+           $result[array_search($data['sku'],$skus)][] = $data;
        }
 
        return $result;
@@ -856,7 +851,7 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
                 self::COL_BUNDLE_OPTIONS => array(),
             );
 
-            $skus[] = $item->getSku();
+            $skus[$itemId] = $item->getSku();
         }
 
         $collection->clear();
@@ -875,6 +870,7 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
         foreach ($productIds as $productId) {
             $result[$productId][self::COL_ATTRIBUTES] = $productAttributes[$productId];
             $result[$productId][self::COL_INVENTORY] = $productInventory[$productId];
+            $result[$productId][self::COL_MULTI_STOCKS] = $productMultiStock[$productId];
             $result[$productId][self::COL_LINKS] = $productLinks[$productId];
             $result[$productId][self::COL_TIER_PRICE] = $productTierPrice[$productId];
             $result[$productId][self::COL_IMAGE_GALLERY] = $productImages[$productId];
