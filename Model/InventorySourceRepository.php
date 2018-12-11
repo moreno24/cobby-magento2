@@ -18,7 +18,6 @@ class InventorySourceRepository implements \Mash2\Cobby\Api\InventorySourceRepos
     {
         $result = array();
 
-
         $sources = $this->sources->getList()->getItems();
 
         foreach ($sources as $data) {

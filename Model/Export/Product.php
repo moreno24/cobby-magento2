@@ -28,6 +28,7 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
     const COL_WEBSITE = '_websites';
     const COL_IMAGE_GALLERY = '_image_gallery';
     const COL_INVENTORY = '_inventory';
+    const COL_MULTI_STOCKS = 'multi_stocks';
     const COL_GROUP_PRICE = '_group_price';
     const COL_TIER_PRICE = '_tier_price';
     const COL_LINKS = '_links';
@@ -131,6 +132,12 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
      */
     private $eventManager;
 
+    private $getSalableQuantityDataBySku;
+
+    private $attributeCollectionProvider;
+
+    private $sourceItemCollectionFactory;
+
     /**
      * @param \Magento\Framework\Json\Helper\Data $jsonHelper
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $collectionFactory
@@ -155,7 +162,10 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
         \Magento\Framework\App\ResourceConnection $resourceModel,
         \Magento\Catalog\Model\ResourceModel\Product\Option\CollectionFactory $optionColFactory,
         \Mash2\Cobby\Model\ResourceModel\Product\CollectionFactory $cobbyProduct,
-        \Magento\Framework\Event\ManagerInterface $eventManager
+        \Magento\Framework\Event\ManagerInterface $eventManager,
+        \Magento\InventorySalesAdminUi\Model\GetSalableQuantityDataBySku $getSalableQuantityDataBySku,
+        \Magento\InventoryImportExport\Model\Export\AttributeCollectionProvider $attributeCollectionProvider,
+        \Magento\InventoryImportExport\Model\Export\SourceItemCollectionFactoryInterface $sourceItemCollectionFactory
     )
     {
         $this->_entityCollectionFactory = $collectionFactory;
@@ -171,6 +181,9 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
         $this->jsonHelper = $jsonHelper;
         $this->cobbyProduct = $cobbyProduct;
         $this->eventManager = $eventManager;
+        $this->getSalableQuantityDataBySku = $getSalableQuantityDataBySku;
+        $this->attributeCollectionProvider = $attributeCollectionProvider;
+        $this->sourceItemCollectionFactory = $sourceItemCollectionFactory;
 
         $this->initStores();
     }
@@ -425,6 +438,39 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
         }
 
         return $result;
+    }
+
+    protected function prepareMultiStocks(array $skus)
+    {
+       $result = array();
+       $parameters = array(
+           'export_filter' => [
+               'source_code' => '',
+               'sku' => '',
+               'status' => '',
+               'quantity' => [
+                   '0' => '',
+                   '1' => ''
+               ]
+           ]
+       );
+
+       $collection = $this->sourceItemCollectionFactory->create(
+           $this->attributeCollectionProvider->get(),
+           $parameters
+       );
+
+       $collection->addFieldToFilter('sku', $skus);
+
+       foreach ($skus as $sku) {
+           //$result=$this->getSalableQuantityDataBySku->execute($sku);
+       }
+
+       foreach ($collection->getData() as $data) {
+           $result[] = $data;
+       }
+
+       return $result;
     }
 
 
@@ -787,6 +833,8 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
             ->addCategoryIds()
             ->addWebsiteNamesToResult();
 
+        $skus = array();
+
         foreach ($collection as $itemId => $item) {
 
             $result[$itemId] = array(
@@ -798,6 +846,7 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
                 self::COL_CATEGORY => implode(",", $item->getCategoryIds()),
                 self::COL_WEBSITE => implode(",", $item->getWebsites()),
                 self::COL_INVENTORY => null,
+                self::COL_MULTI_STOCKS => null,
                 self::COL_GROUP_PRICE => array(),
                 self::COL_TIER_PRICE => array(),
                 self::COL_LINKS => array(),
@@ -806,6 +855,8 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
                 self::COL_CUSTOM_OPTIONS => array(),
                 self::COL_BUNDLE_OPTIONS => array(),
             );
+
+            $skus[] = $item->getSku();
         }
 
         $collection->clear();
@@ -813,6 +864,7 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
         $productIds = array_keys($filterChangedProducts);
         $productAttributes = $this->_prepareAttributes($productIds);
         $productInventory = $this->prepareCatalogInventory($productIds);
+        $productMultiStock = $this->prepareMultiStocks($skus);
         $productLinks = $this->prepareLinks($productIds);
         $productTierPrice = $this->prepareTierPrices($productIds);
         $productImages = $this->prepareMediaGallery($productIds, array_keys($this->storeIdToCode));
