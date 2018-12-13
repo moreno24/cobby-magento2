@@ -52,7 +52,7 @@ class StockManagement extends AbstractManagement implements \Mash2\Cobby\Api\Imp
 
     private $commandAppend;
 
-    private $productMetaData;
+    private $productMetadata;
 
     /**
      * StockManagement constructor.
@@ -76,15 +76,13 @@ class StockManagement extends AbstractManagement implements \Mash2\Cobby\Api\Imp
         \Magento\CatalogInventory\Model\Spi\StockStateProviderInterface $stockStateProvider,
         \Mash2\Cobby\Helper\Settings $cobbySettings,
         \Mash2\Cobby\Model\Product $product,
-        \Magento\InventoryImportExport\Model\Import\Command\Append $commandAppend,
         \Magento\Framework\App\ProductMetadata $productMetadata
     ) {
         $this->stockRegistry = $stockRegistry;
         $this->stockConfiguration = $stockConfiguration;
         $this->stockStateProvider = $stockStateProvider;
         $this->cobbySettings = $cobbySettings;
-        $this->commandAppend = $commandAppend;
-        $this->productMetaData = $productMetadata;
+        $this->productMetadata = $productMetadata;
         parent::__construct($resourceModel, $productCollectionFactory, $eventManager, $resourceHelper, $product);
     }
 
@@ -105,6 +103,10 @@ class StockManagement extends AbstractManagement implements \Mash2\Cobby\Api\Imp
         $stockItems = array();
 
         $stockSourcesItems = array();
+        $magentoVersion = $this->productMetadata->getVersion();
+        $compareOperator = ">=";
+        $compareVersion = "2.3.0";
+        $multiSources = version_compare($magentoVersion, $compareVersion, $compareOperator);
 
         foreach ($rows as $row) {
             $sku = '';
@@ -115,11 +117,7 @@ class StockManagement extends AbstractManagement implements \Mash2\Cobby\Api\Imp
                 continue;
             }
 
-            $magentoVersion = $this->productMetaData->getVersion();
-            $compareOperator = ">=";
-            $compareVersion = "2.3.0";
-
-            if (!empty($row['stock_sources']) &&  version_compare($magentoVersion, $compareVersion, $compareOperator)) {
+            if (!empty($row['stock_sources']) && $multiSources) {
                 $stockSourcesItems = $row['stock_sources'];
                 $sku = !empty($stockSourcesItems[0]['sku']) ? $stockSourcesItems[0]['sku'] : '';
             }
@@ -159,14 +157,16 @@ class StockManagement extends AbstractManagement implements \Mash2\Cobby\Api\Imp
                     $defaultStock
                 );
 
-                $defaultSource = array(
-                    'source_code' => 'default',
-                    'quantity' => $defaultQuantity,
-                    'status' => $defaultAvailability,
-                    'sku'   => $sku
-                );
+                if ($multiSources) {
+                    $defaultSource = array(
+                        'source_code' => 'default',
+                        'quantity' => $defaultQuantity,
+                        'status' => $defaultAvailability,
+                        'sku'   => $sku
+                    );
 
-                $stockSourcesItems[] = $defaultSource;
+                    $stockSourcesItems[] = $defaultSource;
+                }
             }
 
             $stockItemDo->setData($stockData);
@@ -186,6 +186,11 @@ class StockManagement extends AbstractManagement implements \Mash2\Cobby\Api\Imp
         }
 
         if (!empty($stockSourcesItems)) {
+            //"This code needs porting or exist for backward compatibility purposes."
+            //(https://devdocs.magento.com/guides/v2.2/extension-dev-guide/object-manager.html)
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $this->commandAppend = $objectManager->create('Magento\InventoryImportExport\Model\Import\Command\Append');
+
             $this->commandAppend->execute($stockSourcesItems);
         }
 

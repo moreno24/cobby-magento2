@@ -28,7 +28,7 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
     const COL_WEBSITE = '_websites';
     const COL_IMAGE_GALLERY = '_image_gallery';
     const COL_INVENTORY = '_inventory';
-    const COL_MULTI_STOCKS = 'multi_stocks';
+    const COL_MULTI_STOCKS = '_multi_stocks';
     const COL_GROUP_PRICE = '_group_price';
     const COL_TIER_PRICE = '_tier_price';
     const COL_LINKS = '_links';
@@ -149,6 +149,8 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
 
     private $sourceItemCollectionFactory;
 
+    private $productMetadata;
+
     /**
      * @param \Magento\Framework\Json\Helper\Data $jsonHelper
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $collectionFactory
@@ -174,8 +176,7 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
         \Magento\Catalog\Model\ResourceModel\Product\Option\CollectionFactory $optionColFactory,
         \Mash2\Cobby\Model\ResourceModel\Product\CollectionFactory $cobbyProduct,
         \Magento\Framework\Event\ManagerInterface $eventManager,
-        \Magento\InventoryImportExport\Model\Export\AttributeCollectionProvider $attributeCollectionProvider,
-        \Magento\InventoryImportExport\Model\Export\SourceItemCollectionFactoryInterface $sourceItemCollectionFactory
+        \Magento\Framework\App\ProductMetadata $productMetadata
     )
     {
         $this->_entityCollectionFactory = $collectionFactory;
@@ -191,8 +192,7 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
         $this->jsonHelper = $jsonHelper;
         $this->cobbyProduct = $cobbyProduct;
         $this->eventManager = $eventManager;
-        $this->attributeCollectionProvider = $attributeCollectionProvider;
-        $this->sourceItemCollectionFactory = $sourceItemCollectionFactory;
+        $this->productMetadata = $productMetadata;
 
         $this->initStores();
     }
@@ -452,6 +452,12 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
     protected function prepareMultiStocks(array $skus)
     {
        $result = $this->_initResult(array_keys($skus));
+
+        //"This code needs porting or exist for backward compatibility purposes."
+        //(https://devdocs.magento.com/guides/v2.2/extension-dev-guide/object-manager.html)
+       $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+       $this->sourceItemCollectionFactory = $objectManager->create('Magento\InventoryImportExport\Model\Export\SourceItemCollectionFactoryInterface');
+       $this->attributeCollectionProvider = $objectManager->create('Magento\InventoryImportExport\Model\Export\AttributeCollectionProvider');
 
        $collection = $this->sourceItemCollectionFactory->create(
            $this->attributeCollectionProvider->get(),
@@ -829,6 +835,10 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
             ->addWebsiteNamesToResult();
 
         $skus = array();
+        $magentoVersion = $this->productMetadata->getVersion();
+        $compareOperator = ">=";
+        $compareVersion = "2.3.0";
+        $multiSources = version_compare($magentoVersion, $compareVersion, $compareOperator);
 
         foreach ($collection as $itemId => $item) {
 
@@ -859,12 +869,19 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
         $productIds = array_keys($filterChangedProducts);
         $productAttributes = $this->_prepareAttributes($productIds);
         $productInventory = $this->prepareCatalogInventory($productIds);
-        $productMultiStock = $this->prepareMultiStocks($skus);
         $productLinks = $this->prepareLinks($productIds);
         $productTierPrice = $this->prepareTierPrices($productIds);
         $productImages = $this->prepareMediaGallery($productIds, array_keys($this->storeIdToCode));
         $productCustomOptions = $this->prepareCustomOptions($productIds);
         $productBundleOptions = $this->prepareBundleOptions($productIds);
+
+        if ($multiSources) {
+            $productMultiStock = $this->prepareMultiStocks($skus);
+        } else {
+            foreach ($productIds as $productId) {
+                $productMultiStock[$productId] = array();
+            }
+        }
 
 
         foreach ($productIds as $productId) {
