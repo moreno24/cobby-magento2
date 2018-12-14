@@ -28,7 +28,7 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
     const COL_WEBSITE = '_websites';
     const COL_IMAGE_GALLERY = '_image_gallery';
     const COL_INVENTORY = '_inventory';
-    const COL_MULTI_STOCKS = '_multi_stocks';
+    const COL_INVENTORY_SOURCES = '_inventory_sources';
     const COL_GROUP_PRICE = '_group_price';
     const COL_TIER_PRICE = '_tier_price';
     const COL_LINKS = '_links';
@@ -449,7 +449,7 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
         return $result;
     }
 
-    protected function prepareMultiStocks(array $skus)
+    protected function prepareMultiSources(array $skus)
     {
        $result = $this->_initResult(array_keys($skus));
 
@@ -839,6 +839,7 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
         $compareOperator = ">=";
         $compareVersion = "2.3.0";
         $multiSources = version_compare($magentoVersion, $compareVersion, $compareOperator);
+        $productMultiSources = array();
 
         foreach ($collection as $itemId => $item) {
 
@@ -851,7 +852,7 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
                 self::COL_CATEGORY => implode(",", $item->getCategoryIds()),
                 self::COL_WEBSITE => implode(",", $item->getWebsites()),
                 self::COL_INVENTORY => null,
-                self::COL_MULTI_STOCKS => null,
+                self::COL_INVENTORY_SOURCES => null,
                 self::COL_GROUP_PRICE => array(),
                 self::COL_TIER_PRICE => array(),
                 self::COL_LINKS => array(),
@@ -876,10 +877,10 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
         $productBundleOptions = $this->prepareBundleOptions($productIds);
 
         if ($multiSources) {
-            $productMultiStock = $this->prepareMultiStocks($skus);
+            $productMultiSources = $this->prepareMultiSources($skus);
         } else {
             foreach ($productIds as $productId) {
-                $productMultiStock[$productId] = array();
+                $productMultiSources[$productId] = array();
             }
         }
 
@@ -887,7 +888,7 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
         foreach ($productIds as $productId) {
             $result[$productId][self::COL_ATTRIBUTES] = $productAttributes[$productId];
             $result[$productId][self::COL_INVENTORY] = $productInventory[$productId];
-            $result[$productId][self::COL_MULTI_STOCKS] = $productMultiStock[$productId];
+            $result[$productId][self::COL_INVENTORY_SOURCES] = $productMultiSources[$productId];
             $result[$productId][self::COL_LINKS] = $productLinks[$productId];
             $result[$productId][self::COL_TIER_PRICE] = $productTierPrice[$productId];
             $result[$productId][self::COL_IMAGE_GALLERY] = $productImages[$productId];

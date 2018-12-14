@@ -102,7 +102,7 @@ class StockManagement extends AbstractManagement implements \Mash2\Cobby\Api\Imp
         $entityTable = $this->resourceModel->getTableName('cataloginventory_stock_item');
         $stockItems = array();
 
-        $stockSourcesItems = array();
+        $inventorySourcesItems = array();
         $magentoVersion = $this->productMetadata->getVersion();
         $compareOperator = ">=";
         $compareVersion = "2.3.0";
@@ -117,15 +117,16 @@ class StockManagement extends AbstractManagement implements \Mash2\Cobby\Api\Imp
                 continue;
             }
 
-            if (!empty($row['stock_sources']) && $multiSources) {
-                $stockSourcesItems = $row['stock_sources'];
-                $sku = !empty($stockSourcesItems[0]['sku']) ? $stockSourcesItems[0]['sku'] : '';
+            if (!empty($row['inventory_sources']) && $multiSources) {
+                $inventorySourcesItems = $row['inventory_sources'];
+                $sku = !empty($inventorySourcesItems[0]['sku']) ? $inventorySourcesItems[0]['sku'] : '';
             }
 
-            unset($row['stock_sources']);
+            unset($row['inventory_sources']);
 
             $websiteId = $this->stockConfiguration->getDefaultScopeId();
             $stockData = array(
+
                 'product_id' => $productId,
                 'website_id' => $websiteId,
             );
@@ -146,7 +147,7 @@ class StockManagement extends AbstractManagement implements \Mash2\Cobby\Api\Imp
                         $manageStock == \Mash2\Cobby\Helper\Settings::MANAGE_STOCK_DISABLED) &&
                         !$existStockData){
                 $defaultStock = array();
-                $stockSourcesItems = array();
+                $inventorySourcesItems = array();
 
                 $defaultStock['qty'] = $defaultQuantity;
                 $defaultStock['is_in_stock'] = $defaultAvailability;
@@ -165,7 +166,7 @@ class StockManagement extends AbstractManagement implements \Mash2\Cobby\Api\Imp
                         'sku'   => $sku
                     );
 
-                    $stockSourcesItems[] = $defaultSource;
+                    $inventorySourcesItems[] = $defaultSource;
                 }
             }
 
@@ -185,13 +186,13 @@ class StockManagement extends AbstractManagement implements \Mash2\Cobby\Api\Imp
             $this->touchProducts($existingProductIds);
         }
 
-        if (!empty($stockSourcesItems)) {
+        if (!empty($inventorySourcesItems)) {
             //"This code needs porting or exist for backward compatibility purposes."
             //(https://devdocs.magento.com/guides/v2.2/extension-dev-guide/object-manager.html)
             $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
             $this->commandAppend = $objectManager->create('Magento\InventoryImportExport\Model\Import\Command\Append');
 
-            $this->commandAppend->execute($stockSourcesItems);
+            $this->commandAppend->execute($inventorySourcesItems);
         }
 
         $this->eventManager->dispatch('cobby_import_product_stock_import_after', array( 'products' => $productIds ));
