@@ -449,27 +449,32 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
         return $result;
     }
 
-    protected function prepareMultiSources(array $skus)
+    protected function prepareCatalogInventorySources(array $productIds, array $poductIdSkuMap)
     {
-       $result = $this->_initResult(array_keys($skus));
+        $result = $this->_initResult($productIds);
+        $multiSources = version_compare($this->productMetadata->getVersion(), "2.3.0", ">=");
 
-        //"This code needs porting or exist for backward compatibility purposes."
-        //(https://devdocs.magento.com/guides/v2.2/extension-dev-guide/object-manager.html)
-       $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-       $this->sourceItemCollectionFactory = $objectManager->create('Magento\InventoryImportExport\Model\Export\SourceItemCollectionFactoryInterface');
-       $this->attributeCollectionProvider = $objectManager->create('Magento\InventoryImportExport\Model\Export\AttributeCollectionProvider');
+        if($multiSources && count($poductIdSkuMap) > 0) {
 
-       $collection = $this->sourceItemCollectionFactory->create(
-           $this->attributeCollectionProvider->get(),
-           $this->_parameters
-       );
+            //"This code needs porting or exist for backward compatibility purposes."
+            //(https://devdocs.magento.com/guides/v2.2/extension-dev-guide/object-manager.html)
+           $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+           $this->sourceItemCollectionFactory = $objectManager->create('Magento\InventoryImportExport\Model\Export\SourceItemCollectionFactoryInterface');
+           $this->attributeCollectionProvider = $objectManager->create('Magento\InventoryImportExport\Model\Export\AttributeCollectionProvider');
 
-       $collection->addFieldToFilter('sku', $skus);
+           $collection = $this->sourceItemCollectionFactory->create(
+               $this->attributeCollectionProvider->get(),
+               $this->_parameters
+           );
 
-       foreach ($collection->getData() as $data) {
-           //if ($data['sku'] == )
-           $result[array_search($data['sku'],$skus)][] = $data;
-       }
+           $collection->addFieldToFilter('sku', array_keys($poductIdSkuMap) );
+
+           foreach ($collection->getData() as $data) {
+               //if ($data['sku'] == )
+               $productId = $poductIdSkuMap[$data['sku']];
+               $result[$productId][] = $data;
+           }
+        }
 
        return $result;
     }
@@ -834,12 +839,7 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
             ->addCategoryIds()
             ->addWebsiteNamesToResult();
 
-        $skus = array();
-        $magentoVersion = $this->productMetadata->getVersion();
-        $compareOperator = ">=";
-        $compareVersion = "2.3.0";
-        $multiSources = version_compare($magentoVersion, $compareVersion, $compareOperator);
-        $productMultiSources = array();
+        $skuProductIdMap = array();
 
         foreach ($collection as $itemId => $item) {
 
@@ -862,7 +862,7 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
                 self::COL_BUNDLE_OPTIONS => array(),
             );
 
-            $skus[$itemId] = $item->getSku();
+            $skuProductIdMap[$item->getSku()] = $itemId;
         }
 
         $collection->clear();
@@ -870,20 +870,12 @@ class Product extends \Mash2\Cobby\Model\Export\AbstractEntity
         $productIds = array_keys($filterChangedProducts);
         $productAttributes = $this->_prepareAttributes($productIds);
         $productInventory = $this->prepareCatalogInventory($productIds);
+        $productMultiSources = $this->prepareCatalogInventorySources($productIds, $skuProductIdMap);
         $productLinks = $this->prepareLinks($productIds);
         $productTierPrice = $this->prepareTierPrices($productIds);
         $productImages = $this->prepareMediaGallery($productIds, array_keys($this->storeIdToCode));
         $productCustomOptions = $this->prepareCustomOptions($productIds);
         $productBundleOptions = $this->prepareBundleOptions($productIds);
-
-        if ($multiSources) {
-            $productMultiSources = $this->prepareMultiSources($skus);
-        } else {
-            foreach ($productIds as $productId) {
-                $productMultiSources[$productId] = array();
-            }
-        }
-
 
         foreach ($productIds as $productId) {
             $result[$productId][self::COL_ATTRIBUTES] = $productAttributes[$productId];
